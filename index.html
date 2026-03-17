@@ -3,183 +3,183 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<meta name="theme-color" content="#00e5ff">
+<meta name="theme-color" content="#0a0514">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Sky Radar — رادار السماء</title>
+<title>كاشف المسيّرات العسكرية</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#060b18;--card:rgba(12,18,35,.92);--accent:#00e5ff;--green:#00ff88;--red:#ff3366;--yellow:#ffd600;--purple:#b388ff;--orange:#ff9100;--text:#e8eaf6;--sec:#7b8da4;--border:rgba(0,229,255,.12)}
+:root{--bg:#080412;--card:rgba(14,8,32,.94);--red:#ff2244;--orange:#ff6b35;--yellow:#ffd600;--cyan:#00e5ff;--green:#00ff88;--purple:#b388ff;--text:#e8eaf6;--sec:#6b7d94;--border:rgba(255,34,68,.1)}
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-user-select:none;user-select:none}
-#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .6s}
-#loading.hide{opacity:0;pointer-events:none}
-.spinner{width:60px;height:60px;border-radius:50%;border:3px solid rgba(0,229,255,.1);border-top-color:var(--accent);animation:spin 1s linear infinite;position:relative}
-.spinner::after{content:'';position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(0,255,136,.08);border-bottom-color:var(--green);animation:spin 1.5s linear reverse infinite}
+#ld{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .6s}
+#ld.h{opacity:0;pointer-events:none}
+.sp{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,34,68,.1);border-top-color:var(--red);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(0,229,255,.3)}50%{box-shadow:0 0 20px rgba(0,229,255,.5)}}
-.app{padding:6px 6px 20px;max-width:600px;margin:0 auto}
+@keyframes dangerPulse{0%,100%{box-shadow:0 0 5px rgba(255,34,68,.15)}50%{box-shadow:0 0 25px rgba(255,34,68,.35)}}
+@keyframes scanline{0%{top:-5%}100%{top:105%}}
+.app{padding:5px;max-width:620px;margin:0 auto}
 
-/* Header */
-.header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:6px}
-.header h1{font-size:.88rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.badge{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:.64rem;font-weight:600}
-.badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.5s ease-in-out infinite}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:5px}
+.hd h1{font-size:.82rem;font-weight:700;background:linear-gradient(135deg,var(--red),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bd{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:10px;font-size:.6rem;font-weight:600}
+.bd-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.5s ease-in-out infinite}
 
-/* Video */
-.vb{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:6px}
+.tb{padding:7px 10px;border-radius:10px;margin-bottom:5px;text-align:center;font-size:.68rem;font-weight:700;transition:all .4s;border:1px solid}
+.t-safe{background:rgba(0,255,136,.05);color:var(--green);border-color:rgba(0,255,136,.15)}
+.t-low{background:rgba(255,214,0,.06);color:var(--yellow);border-color:rgba(255,214,0,.2)}
+.t-high{background:rgba(255,107,53,.07);color:var(--orange);border-color:rgba(255,107,53,.25)}
+.t-crit{background:rgba(255,34,68,.07);color:var(--red);border-color:rgba(255,34,68,.25);animation:dangerPulse 1.2s ease-in-out infinite}
+
+.vb{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:5px}
 .vw{position:relative;width:100%;aspect-ratio:16/10;background:#000}
 video{width:100%;height:100%;object-fit:cover}
 canvas{position:absolute;top:0;left:0;width:100%;height:100%}
-.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,229,255,.008) 3px,rgba(0,229,255,.008) 6px)}
-.hud{position:absolute;top:6px;left:6px;right:6px;display:flex;justify-content:space-between;pointer-events:none}
-.hi{background:rgba(0,0,0,.7);padding:2px 7px;border-radius:5px;font-size:.58rem;color:var(--accent);border:1px solid rgba(0,229,255,.15)}
-.crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;pointer-events:none;opacity:.15}
-.crosshair::before,.crosshair::after{content:'';position:absolute;background:var(--accent)}
-.crosshair::before{width:1px;height:100%;left:50%;top:0}
-.crosshair::after{width:100%;height:1px;top:50%;left:0}
+.scanl{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,34,68,.15),transparent);pointer-events:none;animation:scanline 4s linear infinite}
+.hud{position:absolute;top:5px;left:5px;right:5px;display:flex;justify-content:space-between;pointer-events:none}
+.hi{background:rgba(0,0,0,.72);padding:2px 6px;border-radius:4px;font-size:.54rem;color:var(--cyan);border:1px solid rgba(0,229,255,.12)}
 
-/* Controls */
-.ct{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;background:rgba(0,0,0,.45);flex-wrap:wrap}
-.btn{padding:8px 20px;border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
-.bs{background:linear-gradient(135deg,var(--accent),#0066ff);color:#000}
-.bp{background:linear-gradient(135deg,var(--red),#b80030);color:#fff}
-.sg{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--sec)}
-.sg input{width:50px;accent-color:var(--accent);height:16px}
-.sg .v{color:var(--accent);width:16px;text-align:center;font-size:.6rem}
+.ct{display:flex;align-items:center;justify-content:center;gap:7px;padding:7px;background:rgba(0,0,0,.4);flex-wrap:wrap}
+.btn{padding:7px 16px;border:none;border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit}
+.b1{background:linear-gradient(135deg,var(--red),#bb0022);color:#fff}
+.b2{background:rgba(80,80,80,.5);color:#ccc}
+.sg{display:flex;align-items:center;gap:3px;font-size:.54rem;color:var(--sec)}
+.sg input{width:45px;accent-color:var(--red);height:15px}
+.sg .v{color:var(--red);width:16px;text-align:center;font-size:.56rem}
 
-/* Stats */
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:6px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center}
-.stat b{font-size:1.2rem;display:block;line-height:1.2}
-.stat small{font-size:.5rem;color:var(--sec)}
+/* Types Legend */
+.lg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;margin-bottom:5px}
+.lg-i{display:flex;align-items:center;gap:4px;padding:5px 7px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:.55rem;color:var(--sec)}
+.lg-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
-/* Legend */
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:10px}
-.leg-item{display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--sec)}
-.leg-dot{width:8px;height:8px;border-radius:50%}
+.sts{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:3px;margin-bottom:5px}
+.st{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:7px 3px;text-align:center}
+.st b{font-size:1.15rem;display:block;line-height:1.1}
+.st small{font-size:.48rem;color:var(--sec)}
 
-/* Objects */
-.cd{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px}
-.ct2{font-size:.75rem;font-weight:700;color:var(--sec);margin-bottom:6px;display:flex;align-items:center;gap:5px}
-#ol{display:flex;flex-direction:column;gap:4px;max-height:35vh;overflow-y:auto}
-#ol::-webkit-scrollbar{width:3px}
-#ol::-webkit-scrollbar-thumb{background:rgba(0,229,255,.12);border-radius:3px}
-.oi{display:flex;align-items:center;gap:6px;padding:7px 9px;background:rgba(0,0,0,.3);border-radius:10px;border-right:3px solid transparent}
-.em{text-align:center;padding:20px;color:var(--sec)}
+.cd{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px}
+.ct2{font-size:.7rem;font-weight:700;color:var(--sec);margin-bottom:5px}
+#ol{display:flex;flex-direction:column;gap:3px;max-height:32vh;overflow-y:auto}
+#ol::-webkit-scrollbar{width:2px}
+#ol::-webkit-scrollbar-thumb{background:rgba(255,34,68,.12);border-radius:2px}
+.oi{display:flex;align-items:center;gap:5px;padding:7px 8px;background:rgba(0,0,0,.25);border-radius:9px;border-right:3px solid transparent}
+.em{text-align:center;padding:18px;color:var(--sec)}
 
-/* Alert */
-.alert{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(255,51,102,.15);border:2px solid var(--red);border-radius:16px;padding:16px 24px;text-align:center;z-index:50;transition:transform .3s;backdrop-filter:blur(10px)}
-.alert.show{transform:translate(-50%,-50%) scale(1)}
-.alert h3{color:var(--red);font-size:1rem;margin-bottom:4px}
-.alert p{color:var(--sec);font-size:.75rem}
+.al{position:fixed;top:0;left:0;right:0;padding:10px 8px;z-index:50;transform:translateY(-110%);transition:transform .4s}
+.al.sh{transform:translateY(0)}
+.al-in{border-radius:12px;padding:10px 14px;text-align:center;backdrop-filter:blur(14px)}
+.al-in h3{font-size:.82rem}
+.al-in p{font-size:.6rem;margin-top:2px;color:var(--sec)}
 </style>
 </head>
 <body>
-<div id="loading"><div class="spinner"></div><div style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-top:16px">🛸 Sky Radar</div><div id="lm" style="color:var(--sec);font-size:.82rem;margin-top:6px">جاري تشغيل الكاميرا...</div></div>
+<div id="ld"><div class="sp"></div><div style="font-size:1.1rem;font-weight:700;color:var(--red);margin-top:14px">🎯 كاشف المسيّرات</div><div id="lm" style="color:var(--sec);font-size:.78rem;margin-top:5px">جاري تشغيل الكاميرا...</div></div>
 
-<div class="alert" id="alert"><h3 id="alertTitle">⚠️ تنبيه</h3><p id="alertMsg"></p></div>
+<div class="al" id="alB"><div class="al-in" id="alIn" style="background:rgba(255,34,68,.12);border:1px solid rgba(255,34,68,.35)"><h3 id="alT"></h3><p id="alM"></p></div></div>
 
 <div class="app">
-<div class="header">
-<div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">🛸</span><h1>Sky Radar — رادار السماء</h1></div>
-<div class="badge" id="bg" style="background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.25)"><div class="badge-dot"></div><span id="bt">جاهز</span></div>
+<div class="hd">
+<div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">🎯</span><h1>كاشف المسيّرات والصواريخ</h1></div>
+<div class="bd" id="bg" style="background:rgba(0,255,136,.06);color:var(--green);border:1px solid rgba(0,255,136,.15)"><div class="bd-dot"></div><span id="bt">جاهز</span></div>
 </div>
+
+<div class="tb t-safe" id="tBar">✅ السماء آمنة</div>
 
 <div class="vb"><div class="vw">
 <video id="vid" autoplay playsinline muted></video>
 <canvas id="cvs"></canvas>
-<div class="scan"></div>
-<div class="crosshair"></div>
-<div class="hud"><div class="hi" id="fH">FPS: 0</div><div class="hi" id="rH">--</div></div>
+<div class="scanl"></div>
+<div class="hud"><div class="hi" id="fH">FPS: 0</div><div class="hi" id="rH">--</div><div class="hi" id="cH">مؤكدة: 0</div></div>
 </div>
 <div class="ct">
-<button class="btn bs" id="tb" onclick="tog()">▶ بدء الرصد</button>
-<div class="sg"><span>الحساسية</span><input type="range" min="8" max="70" value="20" oninput="SN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v">20</span></div>
-<div class="sg"><span>الحد الأدنى</span><input type="range" min="50" max="2000" step="50" value="300" style="accent-color:#b388ff" oninput="MN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v" style="color:#b388ff;width:26px">300</span></div>
+<button class="btn b1" id="tb" onclick="tog()">▶ بدء المراقبة</button>
+<div class="sg"><span>الحساسية</span><input type="range" min="15" max="80" value="35" oninput="SN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v">35</span></div>
+<div class="sg"><span>الحجم</span><input type="range" min="100" max="2500" step="50" value="400" style="accent-color:var(--orange)" oninput="MN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v" style="color:var(--orange);width:24px">400</span></div>
 </div></div>
 
-<div class="legend">
-<div class="leg-item"><div class="leg-dot" style="background:#ff3366"></div>درون</div>
-<div class="leg-item"><div class="leg-dot" style="background:#00e5ff"></div>طائرة</div>
-<div class="leg-item"><div class="leg-dot" style="background:#00ff88"></div>طائر</div>
-<div class="leg-item"><div class="leg-dot" style="background:#ffd600"></div>نيزك/شهاب</div>
-<div class="leg-item"><div class="leg-dot" style="background:#b388ff"></div>جسم مجهول</div>
-<div class="leg-item"><div class="leg-dot" style="background:#ff9100"></div>قمر صناعي</div>
+<div class="lg">
+<div class="lg-i"><div class="lg-d" style="background:#ff2244"></div>شاهد/انتحارية</div>
+<div class="lg-i"><div class="lg-d" style="background:#ff6b35"></div>مسيّرة استطلاع</div>
+<div class="lg-i"><div class="lg-d" style="background:#ff0040"></div>صاروخ كروز</div>
+<div class="lg-i"><div class="lg-d" style="background:#ffd600"></div>صاروخ باليستي</div>
+<div class="lg-i"><div class="lg-d" style="background:#00e5ff"></div>طائرة ركاب</div>
+<div class="lg-i"><div class="lg-d" style="background:#00ff88"></div>طائر / غير مهدد</div>
 </div>
 
-<div class="stats">
-<div class="stat"><b id="sT" style="color:var(--accent)">0</b><small>أجسام</small></div>
-<div class="stat"><b id="sD" style="color:var(--red)">0</b><small>درونات</small></div>
-<div class="stat"><b id="sA" style="color:var(--green)">0</b><small>متوسط السرعة</small></div>
-<div class="stat"><b id="sM" style="color:var(--yellow)">0</b><small>أعلى سرعة</small></div>
+<!-- WhatsApp Emergency Settings -->
+<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 10px;margin-bottom:5px">
+<div style="font-size:.68rem;font-weight:700;color:var(--sec);margin-bottom:6px;display:flex;align-items:center;gap:5px">📱 إعدادات التنبيه عبر واتساب</div>
+<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+<div style="flex:1;min-width:140px">
+<input id="waNum" type="tel" placeholder="رقم الشرطة أو الطوارئ" value="" dir="ltr" style="width:100%;padding:7px 10px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.7rem;font-family:inherit;outline:none">
+</div>
+<div style="display:flex;gap:4px;align-items:center">
+<label style="display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--sec);cursor:pointer">
+<input type="checkbox" id="waAuto" style="accent-color:var(--red);width:14px;height:14px"> تلقائي
+</label>
+<button onclick="sendWA(true)" style="padding:5px 12px;background:#25D366;color:#fff;border:none;border-radius:7px;font-size:.62rem;font-weight:700;cursor:pointer;font-family:inherit">📤 إرسال يدوي</button>
+</div>
+</div>
+<div style="font-size:.5rem;color:var(--sec);margin-top:4px;line-height:1.5">
+أدخل الرقم بالصيغة الدولية (مثال: <span dir="ltr" style="color:var(--cyan)">966911</span> أو <span dir="ltr" style="color:var(--cyan)">966999</span>). عند تفعيل "تلقائي" سيفتح واتساب تلقائياً عند رصد تهديد مؤكد.
+</div>
+</div>
+
+<div class="sts">
+<div class="st"><b id="sT" style="color:var(--cyan)">0</b><small>مؤكدة</small></div>
+<div class="st"><b id="sD" style="color:var(--red)">0</b><small>تهديدات</small></div>
+<div class="st"><b id="sV" style="color:var(--yellow)">0</b><small>أعلى سرعة</small></div>
+<div class="st"><b id="sR" style="color:var(--purple)">0</b><small>مرصودة الآن</small></div>
 </div>
 
 <div class="cd">
-<div class="ct2">🎯 الأجسام المرصودة في السماء</div>
-<div id="ol"><div class="em"><div style="font-size:1.8rem;opacity:.25;margin-bottom:4px">🛸</div><div style="font-size:.75rem">وجّه الكاميرا للسماء واضغط بدء الرصد</div></div></div>
+<div class="ct2">🎯 الأجسام المؤكدة</div>
+<div id="ol"><div class="em"><div style="font-size:1.5rem;opacity:.2;margin-bottom:4px">🎯</div><div style="font-size:.7rem">وجّه الكاميرا للسماء</div></div></div>
 </div>
 </div>
 
 <script>
-// Sky object classification system
-const TYPES={
-  drone:{ar:"درون مسيّرة",icon:"🛸",color:"#ff3366",alert:true},
-  plane:{ar:"طائرة",icon:"✈️",color:"#00e5ff",alert:false},
-  bird:{ar:"طائر",icon:"🐦",color:"#00ff88",alert:false},
-  meteor:{ar:"نيزك / شهاب",icon:"☄️",color:"#ffd600",alert:false},
-  satellite:{ar:"قمر صناعي",icon:"🛰️",color:"#ff9100",alert:false},
-  unknown:{ar:"جسم مجهول",icon:"❓",color:"#b388ff",alert:true}
+// ============ THREAT DATABASE ============
+const TH={
+  shahed:{
+    ar:"مسيّرة انتحارية (شاهد)",icon:"💥",color:"#ff2244",threat:5,
+    desc:"بطيئة نسبياً، مسار مستقيم، صوت مميز، لا تحوم"
+  },
+  recon_uav:{
+    ar:"مسيّرة استطلاع",icon:"🛸",color:"#ff6b35",threat:3,
+    desc:"تحوم، تغير اتجاه، سرعة متوسطة"
+  },
+  cruise:{
+    ar:"صاروخ كروز",icon:"🚀",color:"#ff0040",threat:5,
+    desc:"سريع جداً، مسار مستقيم منخفض"
+  },
+  ballistic:{
+    ar:"صاروخ باليستي",icon:"☄️",color:"#ffd600",threat:5,
+    desc:"سريع جداً، مسار عمودي/قوسي"
+  },
+  plane:{
+    ar:"طائرة ركاب",icon:"✈️",color:"#00e5ff",threat:0,
+    desc:"كبيرة، بطيئة ظاهرياً، مسار ثابت"
+  },
+  bird:{
+    ar:"طائر",icon:"🐦",color:"#00ff88",threat:0,
+    desc:"صغير، حركة عشوائية"
+  },
+  pending:{
+    ar:"قيد التحليل...",icon:"⏳",color:"#555",threat:0,
+    desc:"يحتاج مزيد من الإطارات"
+  }
 };
 
-const DA=["→","↗","↑","↖","←","↙","↓","↘"],
-      DT=["يمين","يمين-أعلى","أعلى","يسار-أعلى","يسار","يسار-أسفل","أسفل","يمين-أسفل"];
+// ============ CONFIG ============
+const CONFIRM=10, CLASSIFY=18, FADE=900;
+const DA=["→","↗","↑","↖","←","↙","↓","↘"];
+const DT=["يمين","يمين↑","أعلى","يسار↑","يسار","يسار↓","أسفل","يمين↓"];
 const dA=a=>a===null?"●":DA[Math.round(((a+360)%360)/45)%8];
-const dTx=a=>a===null?"ثابت":DT[Math.round(((a+360)%360)/45)%8];
+const dTx=a=>a===null?"—":DT[Math.round(((a+360)%360)/45)%8];
 
-let vid,cvs,cx_,oC,oX,dC,dX,pF=null,T={},ic=0,on=false,af;
-let SN=20,MN=300,fc=0,ft=Date.now();
-let droneCount=0,alertTimer=null;
-
-// Classify sky object based on movement pattern
-function classify(obj){
-  const sp=obj.sp, area=obj.a, ratio=obj.bb[2]/(obj.bb[3]||1);
-  const age=(Date.now()-obj.fs)/1000;
-  const dirChanges=obj.dc||0;
-  
-  // Drone: medium size, medium speed, erratic movement, hovers
-  if(sp<60 && sp>3 && area>200 && area<8000 && dirChanges>2 && age>1) return 'drone';
-  if(sp<15 && area>500 && area<5000 && age>2) return 'drone'; // hovering
-  
-  // Plane: large, steady direction, moderate speed
-  if(area>3000 && sp>20 && sp<200 && dirChanges<3) return 'plane';
-  if(area>5000 && sp>10) return 'plane';
-  
-  // Bird: small, fast direction changes, medium speed
-  if(area<1500 && sp>15 && sp<150 && dirChanges>1) return 'bird';
-  if(area<800 && sp>5) return 'bird';
-  
-  // Meteor: very fast, straight line, brief appearance
-  if(sp>200 && age<3 && dirChanges<2) return 'meteor';
-  if(sp>150 && area<500) return 'meteor';
-  
-  // Satellite: small, slow, steady
-  if(area<400 && sp>2 && sp<30 && dirChanges<2 && age>2) return 'satellite';
-  
-  // Unknown
-  return 'unknown';
-}
-
-function showAlert(type,obj){
-  const al=document.getElementById('alert');
-  const t=TYPES[type];
-  document.getElementById('alertTitle').textContent=`⚠️ تم رصد ${t.ar}!`;
-  document.getElementById('alertMsg').textContent=`السرعة: ${Math.round(obj.sp)} px/s | الاتجاه: ${dTx(obj.an)}`;
-  al.style.borderColor=t.color;
-  al.style.background=t.color+'20';
-  al.classList.add('show');
-  clearTimeout(alertTimer);
-  alertTimer=setTimeout(()=>al.classList.remove('show'),2500);
-}
+let vid,cvs,cx_,oC,oX,dC,dX,pF=null,Obj={},ic=0,on=false,af;
+let SN=35,MN=400,fc=0,ft=Date.now(),alTm=null;
+let totalThreats=0;
 
 async function init(){
   vid=document.getElementById('vid');cvs=document.getElementById('cvs');cx_=cvs.getContext('2d');
@@ -190,145 +190,337 @@ async function init(){
     oC=document.createElement('canvas');oC.width=w;oC.height=h;oX=oC.getContext('2d',{willReadFrequently:true});
     dC=document.createElement('canvas');dC.width=w;dC.height=h;dX=dC.getContext('2d',{willReadFrequently:true});
     document.getElementById('rH').textContent=w+'×'+h;
-    document.getElementById('loading').classList.add('hide');
+    document.getElementById('ld').classList.add('h');
   }catch(e){
-    document.getElementById('lm').innerHTML='<div style="color:#ff3366;margin-bottom:10px">لم يتم السماح بالكاميرا</div><button onclick="location.reload()" style="padding:9px 22px;background:#00e5ff;color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">إعادة المحاولة</button>';
+    document.getElementById('lm').innerHTML='<div style="color:var(--red);margin-bottom:8px">تعذر تشغيل الكاميرا</div><button onclick="location.reload()" style="padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:9px;font-weight:700;cursor:pointer">إعادة المحاولة</button>';
   }
 }
 
 function tog(){
-  const b=document.getElementById('tb'),bg=document.getElementById('bg'),bt=document.getElementById('bt');
-  if(!on){on=true;pF=null;droneCount=0;b.textContent='⏹ إيقاف';b.className='btn bp';bg.style.cssText='background:rgba(0,229,255,.1);color:#00e5ff;border:1px solid rgba(0,229,255,.25)';bt.textContent='يرصد...';run()}
-  else{on=false;if(af)cancelAnimationFrame(af);cx_.clearRect(0,0,cvs.width,cvs.height);T={};b.textContent='▶ بدء الرصد';b.className='btn bs';bg.style.cssText='background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.25)';bt.textContent='جاهز';uUI([])}
+  const b=document.getElementById('tb');
+  if(!on){
+    on=true;pF=null;Obj={};totalThreats=0;
+    b.textContent='⏹ إيقاف';b.className='btn b2';
+    document.getElementById('bg').style.cssText='background:rgba(255,34,68,.06);color:var(--red);border:1px solid rgba(255,34,68,.15)';
+    document.getElementById('bt').textContent='يراقب...';run();
+  }else{
+    on=false;if(af)cancelAnimationFrame(af);
+    cx_.clearRect(0,0,cvs.width,cvs.height);Obj={};
+    b.textContent='▶ بدء المراقبة';b.className='btn b1';
+    document.getElementById('bg').style.cssText='background:rgba(0,255,136,.06);color:var(--green);border:1px solid rgba(0,255,136,.15)';
+    document.getElementById('bt').textContent='جاهز';
+    setThreat([]);uUI([]);
+  }
 }
 
-function fB(d,w,h){
+// ============ DETECTION ============
+function findB(d,w,h){
   const m=new Uint8Array(w*h);
   for(let i=0;i<w*h;i++){const j=i*4;m[i]=(d[j]+d[j+1]+d[j+2])/3>SN?1:0}
+  // Cut bottom 18% (ground)
+  const cut=Math.floor(h*.82);
+  for(let y=cut;y<h;y++)for(let x=0;x<w;x++)m[y*w+x]=0;
+  
   const lb=new Int32Array(w*h),bl=[];let li=0;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const i=y*w+x;if(m[i]&&!lb[i]){
       li++;let x0=x,x1=x,y0=y,y1=y,c=0;const s=[i];
       while(s.length){const ci=s.pop();if(ci<0||ci>=w*h||lb[ci]||!m[ci])continue;lb[ci]=li;
         const px=ci%w,py=(ci-px)/w;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;c++;
-        if(c<40000){if(px>0)s.push(ci-1);if(px<w-1)s.push(ci+1);if(py>0)s.push(ci-w);if(py<h-1)s.push(ci+w)}}
-      if(c>=MN/4)bl.push({x:x0,y:y0,w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2,a:c})
+        if(c<35000){if(px>0)s.push(ci-1);if(px<w-1)s.push(ci+1);if(py>0)s.push(ci-w);if(py<h-1)s.push(ci+w)}}
+      if(c>=MN/4 && c<w*h*.12 && y1<cut-3)
+        bl.push({x:x0,y:y0,w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2,a:c});
     }
   }
   return bl;
 }
 
-function mT(bl){
+// ============ TRACKING ============
+function trk(bl){
   const now=Date.now(),mt=new Set(),nt={};
   for(const b of bl){
-    let bi=null,bd=140;
-    for(const[id,o]of Object.entries(T)){if(mt.has(id))continue;const d=Math.hypot(b.cx-o.cx,b.cy-o.cy);if(d<bd){bd=d;bi=id}}
+    let bi=null,bd=130;
+    for(const[id,o]of Object.entries(Obj)){if(mt.has(id))continue;
+      const d=Math.hypot(b.cx-o.cx,b.cy-o.cy);if(d<bd){bd=d;bi=id}}
     if(bi){
-      mt.add(bi);const p=T[bi],dt=(now-p.ls)/1e3,dx=b.cx-p.cx,dy=b.cy-p.cy;
-      const sp=dt>0?Math.hypot(dx,dy)/dt:0,ss=p.sp*.6+sp*.4;
-      const newAn=sp>2?Math.atan2(-dy,dx)*180/Math.PI:p.an;
-      // Count direction changes
+      mt.add(bi);const p=Obj[bi];
+      const dt=(now-p.ls)/1e3,dx=b.cx-p.cx,dy=b.cy-p.cy;
+      const sp=dt>0?Math.hypot(dx,dy)/dt:0,ss=p.sp*.55+sp*.45;
+      const nA=sp>2?Math.atan2(-dy,dx)*180/Math.PI:p.an;
+      
       let dc=p.dc||0;
-      if(p.an!==null&&newAn!==null){const diff=Math.abs(newAn-p.an);if(diff>30&&diff<330)dc++}
-      const type=classify({...p,sp:ss,a:b.a,bb:[b.x,b.y,b.w,b.h],dc,fs:p.fs});
-      // Alert on first drone detection
-      if(type==='drone'&&p.type!=='drone')showAlert('drone',{sp:ss,an:newAn});
-      if(type==='unknown'&&(now-p.fs)>3000&&!p.alerted){showAlert('unknown',{sp:ss,an:newAn});p.alerted=true}
-      nt[bi]={...p,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:ss,an:newAn,ls:now,a:b.a,dc,type,
-        hi:[...p.hi.slice(-30),{cx:b.cx,cy:b.cy}]};
+      if(p.an!==null&&nA!==null){if(Math.abs(((nA-p.an+540)%360)-180)>20)dc++}
+      
+      let hf=p.hf||0;
+      if(ss<6)hf++;else hf=Math.max(0,hf-1);
+      
+      const sH=[...(p.sH||[]).slice(-25),ss];
+      const fr=(p.fr||0)+1;
+      
+      // Vertical movement tracking
+      const vyHist=[...(p.vyHist||[]).slice(-15),dy/Math.max(dt,.016)];
+      const avgVy=vyHist.reduce((a,v)=>a+v,0)/vyHist.length;
+      
+      let type=p.type;
+      if(fr>=CONFIRM) type=classify({sp:ss,a:b.a,w:b.w,h:b.h,dc,hf,sH,fr,
+        avgSp:sH.reduce((a,v)=>a+v,0)/sH.length,
+        maxSp:Math.max(...sH),
+        sVar:variance(sH),
+        avgVy,vyHist,
+        ratio:b.w/(b.h||1),
+        age:(now-p.fs)/1e3
+      });
+      
+      if(fr===CLASSIFY && TH[type]&&TH[type].threat>=3 && !p.alt){
+        showAl(type,{sp:ss,an:nA});p.alt=true;totalThreats++;
+      }
+      
+      nt[bi]={...p,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:ss,an:nA,ls:now,a:b.a,
+        dc,hf,sH,fr,type,vyHist,hi:[...p.hi.slice(-35),{cx:b.cx,cy:b.cy}]};
     }else{
-      const id='s_'+(++ic);
-      nt[id]={id,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:0,an:null,ls:now,fs:now,a:b.a,dc:0,
-        type:'unknown',co:'#b388ff',hi:[{cx:b.cx,cy:b.cy}],alerted:false};
+      const id='t_'+(++ic);
+      nt[id]={id,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:0,an:null,ls:now,fs:now,a:b.a,
+        dc:0,hf:0,sH:[0],fr:1,type:'pending',vyHist:[0],hi:[{cx:b.cx,cy:b.cy}],alt:false};
     }
   }
-  for(const[id,o]of Object.entries(T))if(!nt[id]&&now-o.ls<600)nt[id]={...o,sp:o.sp*.85};
-  T=nt;
+  for(const[id,o]of Object.entries(Obj))
+    if(!nt[id]&&now-o.ls<FADE)nt[id]={...o,sp:o.sp*.8};
+  Obj=nt;
 }
 
-function dr(){
-  cx_.clearRect(0,0,cvs.width,cvs.height);
-  for(const o of Object.values(T)){
-    const[x,y,w,h]=o.bb;
-    const t=TYPES[o.type]||TYPES.unknown;
-    const c=t.color;
+function variance(a){if(a.length<3)return 0;const m=a.reduce((s,v)=>s+v,0)/a.length;return a.reduce((s,v)=>s+(v-m)**2,0)/a.length}
 
-    // Trail with gradient
-    if(o.hi.length>2){
-      cx_.beginPath();cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.globalAlpha=.25;
-      o.hi.forEach((p,i)=>i?cx_.lineTo(p.cx,p.cy):cx_.moveTo(p.cx,p.cy));
-      cx_.stroke();cx_.globalAlpha=1;
+// ============ CLASSIFICATION ============
+function classify(o){
+  const{sp,a,w,h,dc,hf,fr,avgSp,maxSp,sVar,avgVy,ratio,age}=o;
+  
+  // ── صاروخ باليستي: سريع جداً، مسار عمودي هابط ──
+  if(avgSp>200 && avgVy>50 && dc<3 && fr>10) return 'ballistic';
+  if(maxSp>300 && dc<2) return 'ballistic';
+  
+  // ── صاروخ كروز: سريع، مستقيم، منخفض ──
+  if(avgSp>120 && avgSp<300 && dc<4 && hf<3 && a<6000 && fr>10) return 'cruise';
+  if(avgSp>100 && dc<3 && ratio>1.5 && fr>12) return 'cruise';
+  
+  // ── شاهد / مسيّرة انتحارية: بطيئة-متوسطة، مسار مستقيم، لا تحوم، حجم متوسط ──
+  if(avgSp>15 && avgSp<90 && dc<5 && hf<5 && a>200 && a<8000 && fr>=CLASSIFY){
+    // شاهد تطير بخط مستقيم تقريباً بسرعة ثابتة
+    if(sVar<400 && dc<4) return 'shahed';
+  }
+  if(avgSp>20 && avgSp<70 && dc<3 && sVar<200 && a>300 && a<5000 && fr>=CLASSIFY) return 'shahed';
+  
+  // ── مسيّرة استطلاع: تحوم، تغير اتجاه، سرعة متوسطة ──
+  if(a>150 && a<10000 && hf>8 && fr>=CLASSIFY) return 'recon_uav';
+  if(a>150 && a<10000 && dc>5 && avgSp<80 && fr>=CLASSIFY) return 'recon_uav';
+  if(hf>5 && dc>3 && avgSp<60 && fr>=CLASSIFY) return 'recon_uav';
+  
+  // ── طائرة ركاب: كبيرة، بطيئة، مسار ثابت ──
+  if(a>8000 && avgSp<80 && dc<3 && fr>=CLASSIFY) return 'plane';
+  if(a>5000 && dc<2 && sVar<100 && fr>=CLASSIFY) return 'plane';
+  
+  // ── طائر: صغير، حركة متذبذبة ──
+  if(a<1000 && sVar>80 && fr>=CLASSIFY) return 'bird';
+  if(a<600 && fr>=CLASSIFY) return 'bird';
+  if(a<1500 && dc>4 && sVar>150 && fr>=CLASSIFY) return 'bird';
+  
+  return 'pending';
+}
+
+// ============ ALERT + WHATSAPP ============
+let waSent={};  // track sent alerts to avoid spam
+let lastWaTime=0;
+const WA_COOLDOWN=60000; // 60 seconds between auto WhatsApp messages
+
+function getLocationText(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve('الموقع غير متاح');return}
+    navigator.geolocation.getCurrentPosition(
+      pos=>resolve(`${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`),
+      ()=>resolve('تعذر تحديد الموقع'),
+      {timeout:5000,enableHighAccuracy:true}
+    );
+  });
+}
+
+function buildWAMessage(type,obj,location){
+  const t=TH[type];if(!t)return'';
+  const now=new Date();
+  const time=now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+  const date=now.toLocaleDateString('ar-SA');
+  const dir=dTx(obj.an);
+  const speed=Math.round(obj.sp);
+  
+  let msg=`🚨 *تنبيه أمني — كاشف التهديدات الجوية*\n\n`;
+  msg+=`⚠️ *تم رصد: ${t.icon} ${t.ar}*\n`;
+  msg+=`🔴 مستوى التهديد: ${t.threat>=5?'خطر شديد ❗❗':'تهديد ⚠️'}\n\n`;
+  msg+=`📊 *تفاصيل الرصد:*\n`;
+  msg+=`• السرعة: ${speed} بكسل/ثانية\n`;
+  msg+=`• الاتجاه: ${dir}\n`;
+  msg+=`• الوصف: ${t.desc}\n\n`;
+  msg+=`📍 *الموقع:* ${location}\n`;
+  msg+=`🕐 *التوقيت:* ${time} — ${date}\n\n`;
+  if(location.includes(',')){
+    msg+=`🗺️ خريطة: https://maps.google.com/?q=${location}\n\n`;
+  }
+  msg+=`⚡ تم الإرسال تلقائياً من تطبيق كاشف المسيّرات`;
+  return msg;
+}
+
+async function sendWA(manual=false){
+  const num=document.getElementById('waNum').value.replace(/[^0-9]/g,'');
+  if(!num){
+    if(manual)alert('أدخل رقم الطوارئ أولاً');
+    return;
+  }
+  
+  // Build message from current threats or manual
+  const objs=Object.values(Obj).filter(o=>o.fr>=CONFIRM && TH[o.type]&&TH[o.type].threat>=3);
+  
+  let type='shahed',obj={sp:0,an:null};
+  if(objs.length>0){
+    const worst=objs.sort((a,b)=>(TH[b.type]?.threat||0)-(TH[a.type]?.threat||0))[0];
+    type=worst.type;obj=worst;
+  }else if(manual){
+    // Manual send with no current threats
+    type='recon_uav';obj={sp:0,an:null};
+  }else{return}
+  
+  let location='جاري التحديد...';
+  try{location=await getLocationText()}catch(e){}
+  
+  const msg=buildWAMessage(type,obj,location);
+  const url=`https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+  lastWaTime=Date.now();
+}
+
+function showAl(type,obj){
+  const t=TH[type];if(!t)return;
+  document.getElementById('alT').textContent=`⚠️ ${t.ar}`;
+  document.getElementById('alM').textContent=`${t.desc} | السرعة: ${Math.round(obj.sp)} | ${dTx(obj.an)}`;
+  const inn=document.getElementById('alIn');
+  inn.style.borderColor=t.color+'88';inn.style.background=t.color+'18';
+  document.getElementById('alT').style.color=t.color;
+  document.getElementById('alB').classList.add('sh');
+  clearTimeout(alTm);alTm=setTimeout(()=>document.getElementById('alB').classList.remove('sh'),3500);
+  if(navigator.vibrate)navigator.vibrate(t.threat>=5?[300,100,300,100,600]:[200,100,200]);
+  
+  // Auto WhatsApp
+  const autoOn=document.getElementById('waAuto').checked;
+  const num=document.getElementById('waNum').value.replace(/[^0-9]/g,'');
+  if(autoOn && num && t.threat>=3 && Date.now()-lastWaTime>WA_COOLDOWN){
+    // Small delay to let user see the alert first
+    setTimeout(()=>sendWA(false),1500);
+  }
+}
+
+function setThreat(objs){
+  const bar=document.getElementById('tBar');
+  const threats=objs.filter(o=>TH[o.type]&&TH[o.type].threat>=3);
+  if(!threats.length){bar.className='tb t-safe';bar.textContent='✅ السماء آمنة';return}
+  const mx=Math.max(...threats.map(o=>TH[o.type].threat));
+  const names=[...new Set(threats.map(o=>TH[o.type].ar))].join('، ');
+  if(mx>=5){bar.className='tb t-crit';bar.textContent=`🚨 خطر شديد: ${names}`}
+  else if(mx>=3){bar.className='tb t-high';bar.textContent=`⚠️ تهديد: ${names}`}
+  else{bar.className='tb t-low';bar.textContent=`⚡ مراقبة: ${names}`}
+}
+
+// ============ DRAW ============
+function draw(){
+  cx_.clearRect(0,0,cvs.width,cvs.height);
+  // Ground line
+  const cut=cvs.height*.82;
+  cx_.strokeStyle='rgba(255,34,68,.06)';cx_.lineWidth=1;cx_.setLineDash([8,6]);
+  cx_.beginPath();cx_.moveTo(0,cut);cx_.lineTo(cvs.width,cut);cx_.stroke();cx_.setLineDash([]);
+  cx_.fillStyle='rgba(255,34,68,.025)';cx_.fillRect(0,cut,cvs.width,cvs.height-cut);
+  cx_.font='500 10px sans-serif';cx_.fillStyle='rgba(255,34,68,.15)';cx_.textAlign='center';
+  cx_.fillText('— منطقة أرضية (يتم تجاهلها) —',cvs.width/2,cut+14);
+
+  for(const o of Object.values(Obj)){
+    if(o.fr<CONFIRM && o.type==='pending')continue;
+    const[x,y,w,h]=o.bb;
+    const t=TH[o.type]||TH.pending;
+    const c=t.color;
+    const conf=o.fr>=CLASSIFY;
+    const op=conf?1:.45;
+
+    // Trail
+    if(o.hi.length>3){
+      cx_.beginPath();cx_.strokeStyle=c;cx_.lineWidth=conf?1.5:1;cx_.globalAlpha=op*.2;
+      o.hi.forEach((p,i)=>i?cx_.lineTo(p.cx,p.cy):cx_.moveTo(p.cx,p.cy));cx_.stroke();cx_.globalAlpha=1;
     }
 
-    // Detection box
-    cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.setLineDash([5,3]);cx_.strokeRect(x,y,w,h);cx_.setLineDash([]);
-    
-    // Corner brackets
-    const cn=Math.min(12,w/3,h/3);cx_.lineWidth=2.5;cx_.strokeStyle=c;cx_.beginPath();
-    cx_.moveTo(x,y+cn);cx_.lineTo(x,y);cx_.lineTo(x+cn,y);
-    cx_.moveTo(x+w-cn,y);cx_.lineTo(x+w,y);cx_.lineTo(x+w,y+cn);
-    cx_.moveTo(x+w,y+h-cn);cx_.lineTo(x+w,y+h);cx_.lineTo(x+w-cn,y+h);
-    cx_.moveTo(x+cn,y+h);cx_.lineTo(x,y+h);cx_.lineTo(x,y+h-cn);cx_.stroke();
+    cx_.globalAlpha=op;
+    // Box
+    cx_.strokeStyle=c;cx_.lineWidth=conf?2:1;cx_.setLineDash(conf?[]:[3,3]);
+    cx_.strokeRect(x,y,w,h);cx_.setLineDash([]);
 
-    // Pulsing center for drones
-    if(o.type==='drone'){
-      cx_.beginPath();cx_.arc(o.cx,o.cy,12,0,Math.PI*2);
-      cx_.strokeStyle=c;cx_.lineWidth=1;cx_.globalAlpha=.3+Math.sin(Date.now()/200)*.2;cx_.stroke();cx_.globalAlpha=1;
+    // Corners (confirmed only)
+    if(conf){
+      const cn=Math.min(11,w/3,h/3);cx_.lineWidth=2.5;cx_.strokeStyle=c;cx_.beginPath();
+      cx_.moveTo(x,y+cn);cx_.lineTo(x,y);cx_.lineTo(x+cn,y);
+      cx_.moveTo(x+w-cn,y);cx_.lineTo(x+w,y);cx_.lineTo(x+w,y+cn);
+      cx_.moveTo(x+w,y+h-cn);cx_.lineTo(x+w,y+h);cx_.lineTo(x+w-cn,y+h);
+      cx_.moveTo(x+cn,y+h);cx_.lineTo(x,y+h);cx_.lineTo(x,y+h-cn);cx_.stroke();
+    }
+
+    // Threat glow
+    if(t.threat>=3&&conf){
+      cx_.beginPath();cx_.arc(o.cx,o.cy,Math.max(w,h)*.7,0,Math.PI*2);
+      cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.globalAlpha=.12+Math.sin(Date.now()/200)*.08;cx_.stroke();cx_.globalAlpha=op;
     }
 
     // Label
-    const label=`${t.icon} ${t.ar} ${dA(o.an)} ${Math.round(o.sp)}`;
-    cx_.font='600 11px sans-serif';const tw=cx_.measureText(label).width+12,lh=20,lx=x,ly=y-lh-3;
-    cx_.fillStyle='rgba(0,0,0,.8)';cx_.beginPath();cx_.roundRect(lx,ly,tw,lh,4);cx_.fill();
-    cx_.strokeStyle=c;cx_.lineWidth=.8;cx_.stroke();
-    cx_.fillStyle=c;cx_.textBaseline='middle';cx_.textAlign='right';cx_.fillText(label,lx+tw-6,ly+lh/2);
+    const lb=conf?`${t.icon} ${t.ar} ${dA(o.an)} ${Math.round(o.sp)}`:`⏳ تحليل... ${Math.round(o.sp)}`;
+    cx_.font='600 10px sans-serif';const tw=cx_.measureText(lb).width+12,lh=18,lx=x,ly=y-lh-2;
+    cx_.fillStyle=conf?'rgba(0,0,0,.8)':'rgba(0,0,0,.45)';
+    cx_.beginPath();cx_.roundRect(lx,ly,tw,lh,4);cx_.fill();
+    cx_.strokeStyle=c;cx_.lineWidth=.6;cx_.stroke();
+    cx_.fillStyle=c;cx_.textBaseline='middle';cx_.textAlign='right';cx_.fillText(lb,lx+tw-5,ly+lh/2);
 
-    // Center dot
+    // Center + direction
     cx_.beginPath();cx_.arc(o.cx,o.cy,3,0,Math.PI*2);cx_.fillStyle=c;cx_.fill();
-
-    // Direction arrow
-    if(o.sp>5&&o.an!==null){
-      const r=o.an*Math.PI/180,l=Math.min(o.sp*.35,45),ax=o.cx+Math.cos(r)*l,ay=o.cy-Math.sin(r)*l;
+    if(o.sp>4&&o.an!==null){
+      const r=o.an*Math.PI/180,l=Math.min(o.sp*.3,38),ax=o.cx+Math.cos(r)*l,ay=o.cy-Math.sin(r)*l;
       cx_.beginPath();cx_.moveTo(o.cx,o.cy);cx_.lineTo(ax,ay);cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.stroke();
-      cx_.beginPath();cx_.moveTo(ax,ay);cx_.lineTo(ax-Math.cos(r-.4)*7,ay+Math.sin(r-.4)*7);
-      cx_.lineTo(ax-Math.cos(r+.4)*7,ay+Math.sin(r+.4)*7);cx_.closePath();cx_.fillStyle=c;cx_.fill();
+      cx_.beginPath();cx_.moveTo(ax,ay);cx_.lineTo(ax-Math.cos(r-.4)*6,ay+Math.sin(r-.4)*6);
+      cx_.lineTo(ax-Math.cos(r+.4)*6,ay+Math.sin(r+.4)*6);cx_.closePath();cx_.fillStyle=c;cx_.fill();
     }
-
-    // Altitude estimate bar
-    const altY=y+h+4;cx_.fillStyle='rgba(0,0,0,.4)';cx_.fillRect(x,altY,w,3);
-    const altPct=Math.min(1,o.sp/150);cx_.fillStyle=c;cx_.fillRect(x,altY,w*altPct,3);
+    cx_.globalAlpha=1;
   }
 }
 
-function uUI(ob){
-  document.getElementById('sT').textContent=ob.length;
-  const drones=ob.filter(o=>o.type==='drone').length;
-  document.getElementById('sD').textContent=drones;
-  if(ob.length){
-    const sp=ob.map(o=>o.sp);
-    document.getElementById('sA').textContent=Math.round(sp.reduce((a,b)=>a+b,0)/sp.length);
-    document.getElementById('sM').textContent=Math.round(Math.max(...sp));
-  }else{document.getElementById('sA').textContent='0';document.getElementById('sM').textContent='0'}
-  
+// ============ UI ============
+function uUI(objs){
+  const conf=objs.filter(o=>o.fr>=CONFIRM && o.type!=='pending');
+  const threats=conf.filter(o=>TH[o.type]&&TH[o.type].threat>=3);
+  document.getElementById('sT').textContent=conf.length;
+  document.getElementById('sD').textContent=threats.length;
+  document.getElementById('sR').textContent=objs.length;
+  document.getElementById('cH').textContent='مؤكدة: '+conf.length;
+  document.getElementById('sV').textContent=conf.length?Math.round(Math.max(...conf.map(o=>o.sp))):0;
+  setThreat(conf);
+
   const l=document.getElementById('ol');
-  if(!ob.length){l.innerHTML='<div class="em"><div style="font-size:1.8rem;opacity:.25;margin-bottom:4px">🛸</div><div style="font-size:.75rem">وجّه الكاميرا للسماء</div></div>';return}
-  
-  l.innerHTML=ob.sort((a,b)=>b.sp-a.sp).map(o=>{
-    const t=TYPES[o.type]||TYPES.unknown;
-    const sc=o.sp>100?'#ff3366':o.sp>40?'#ffd600':'#00ff88';
+  if(!conf.length){l.innerHTML='<div class="em"><div style="font-size:1.5rem;opacity:.18;margin-bottom:3px">🎯</div><div style="font-size:.68rem">جاري المراقبة...</div></div>';return}
+  l.innerHTML=conf.sort((a,b)=>(TH[b.type]?.threat||0)-(TH[a.type]?.threat||0)||b.sp-a.sp).map(o=>{
+    const t=TH[o.type]||TH.pending;
+    const sc=o.sp>120?'var(--red)':o.sp>50?'var(--yellow)':'var(--green)';
     const age=Math.round((Date.now()-o.fs)/1000);
-    return`<div class="oi" style="border-right-color:${t.color}">
-      <div style="font-size:1.1rem;width:22px;text-align:center">${t.icon}</div>
+    const isThreat=t.threat>=3;
+    return`<div class="oi" style="border-right-color:${t.color}${isThreat?';background:'+t.color+'08':''}">
+      <div style="font-size:1rem;width:20px;text-align:center">${t.icon}</div>
       <div style="flex:1">
-        <div style="font-size:.72rem;font-weight:700;color:${t.color}">${t.ar}</div>
-        <div style="font-size:.55rem;color:var(--sec)">${dTx(o.an)} · ${o.a}px · ${age}ث</div>
+        <div style="font-size:.66rem;font-weight:700;color:${t.color}">${t.ar}${o.fr>=CLASSIFY?' ✓':' ⏳'}</div>
+        <div style="font-size:.5rem;color:var(--sec)">${dTx(o.an)} · ${age}ث · تغيرات:${o.dc} · تحويم:${o.hf||0}</div>
       </div>
-      <div style="font-size:.9rem;color:${t.color};width:18px;text-align:center">${dA(o.an)}</div>
-      <div style="font-size:.72rem;font-weight:700;color:${sc}">${Math.round(o.sp)}</div>
-    </div>`;
+      <div style="font-size:.82rem;color:${t.color}">${dA(o.an)}</div>
+      <div style="font-size:.66rem;font-weight:700;color:${sc}">${Math.round(o.sp)}</div>
+    </div>`
   }).join('');
 }
 
+// ============ MAIN LOOP ============
 function run(){
   if(!on)return;if(!vid||vid.paused){af=requestAnimationFrame(run);return}
   const w=vid.videoWidth,h=vid.videoHeight;
@@ -336,13 +528,12 @@ function run(){
   if(pF){
     const p=pF.data,c=cur.data,di=dX.createImageData(w,h),d=di.data;
     for(let i=0;i<c.length;i+=4){d[i]=Math.abs(c[i]-p[i]);d[i+1]=Math.abs(c[i+1]-p[i+1]);d[i+2]=Math.abs(c[i+2]-p[i+2]);d[i+3]=255}
-    mT(fB(d,w,h));dr();
+    trk(findB(d,w,h));draw();
     fc++;const now=Date.now();if(now-ft>=1e3){document.getElementById('fH').textContent='FPS: '+fc;fc=0;ft=now}
-    if(fc%4===0)uUI(Object.values(T));
+    if(fc%4===0)uUI(Object.values(Obj));
   }
   pF=cur;af=requestAnimationFrame(run);
 }
-
 init();
 </script>
 </body>
