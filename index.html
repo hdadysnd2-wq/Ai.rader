@@ -4,65 +4,345 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <meta name="theme-color" content="#00e5ff">
-<title>AI Radar</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Sky Radar — رادار السماء</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0e1a;--card:rgba(17,24,39,.9);--accent:#00e5ff;--green:#00ff88;--red:#ff3366;--yellow:#ffd600;--purple:#b388ff;--text:#e8eaf6;--sec:#90a4ae;--border:rgba(0,229,255,.15)}
-body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-user-select:none;user-select:none}
-#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .5s}
+:root{--bg:#060b18;--card:rgba(12,18,35,.92);--accent:#00e5ff;--green:#00ff88;--red:#ff3366;--yellow:#ffd600;--purple:#b388ff;--orange:#ff9100;--text:#e8eaf6;--sec:#7b8da4;--border:rgba(0,229,255,.12)}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-user-select:none;user-select:none}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .6s}
 #loading.hide{opacity:0;pointer-events:none}
-.spinner{width:56px;height:56px;border-radius:50%;border:3px solid rgba(0,229,255,.15);border-top-color:var(--accent);animation:spin 1s linear infinite}
+.spinner{width:60px;height:60px;border-radius:50%;border:3px solid rgba(0,229,255,.1);border-top-color:var(--accent);animation:spin 1s linear infinite;position:relative}
+.spinner::after{content:'';position:absolute;inset:6px;border-radius:50%;border:2px solid rgba(0,255,136,.08);border-bottom-color:var(--green);animation:spin 1.5s linear reverse infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.app{padding:8px 8px 20px}
-.header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:8px}
-.header h1{font-size:.95rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.badge{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:14px;font-size:.68rem;font-weight:600}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(0,229,255,.3)}50%{box-shadow:0 0 20px rgba(0,229,255,.5)}}
+.app{padding:6px 6px 20px;max-width:600px;margin:0 auto}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:6px}
+.header h1{font-size:.88rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.badge{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:12px;font-size:.64rem;font-weight:600}
 .badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.5s ease-in-out infinite}
-.video-box{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px}
-.video-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#000}
-video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1)}
-.hud{position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;pointer-events:none}
-.hud-item{background:rgba(0,0,0,.65);padding:2px 7px;border-radius:5px;font-size:.6rem;color:var(--accent);border:1px solid rgba(0,229,255,.2)}
-.controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px;background:rgba(0,0,0,.4);flex-wrap:wrap}
-.btn{padding:9px 22px;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit}
-.btn-start{background:linear-gradient(135deg,var(--accent),#0091ea);color:#000}
-.btn-stop{background:linear-gradient(135deg,var(--red),#d50000);color:#fff}
-.sg{display:flex;align-items:center;gap:4px;font-size:.62rem;color:var(--sec)}
-.sg input{width:55px;accent-color:var(--accent);height:18px}
-.sg .v{color:var(--accent);width:18px;text-align:center;font-size:.65rem}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center}
-.stat b{font-size:1.4rem;display:block;line-height:1.2}
-.stat small{font-size:.58rem;color:var(--sec)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-.card-t{font-size:.78rem;font-weight:700;color:var(--sec);margin-bottom:8px}
-#objList{display:flex;flex-direction:column;gap:5px;max-height:40vh;overflow-y:auto}
-.oi{display:flex;align-items:center;gap:7px;padding:7px 10px;background:rgba(0,0,0,.3);border-radius:10px}
-.empty{text-align:center;padding:24px;color:var(--sec)}
+
+/* Video */
+.vb{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:6px}
+.vw{position:relative;width:100%;aspect-ratio:16/10;background:#000}
+video{width:100%;height:100%;object-fit:cover}
+canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,229,255,.008) 3px,rgba(0,229,255,.008) 6px)}
+.hud{position:absolute;top:6px;left:6px;right:6px;display:flex;justify-content:space-between;pointer-events:none}
+.hi{background:rgba(0,0,0,.7);padding:2px 7px;border-radius:5px;font-size:.58rem;color:var(--accent);border:1px solid rgba(0,229,255,.15)}
+.crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;pointer-events:none;opacity:.15}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:var(--accent)}
+.crosshair::before{width:1px;height:100%;left:50%;top:0}
+.crosshair::after{width:100%;height:1px;top:50%;left:0}
+
+/* Controls */
+.ct{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;background:rgba(0,0,0,.45);flex-wrap:wrap}
+.btn{padding:8px 20px;border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit}
+.bs{background:linear-gradient(135deg,var(--accent),#0066ff);color:#000}
+.bp{background:linear-gradient(135deg,var(--red),#b80030);color:#fff}
+.sg{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--sec)}
+.sg input{width:50px;accent-color:var(--accent);height:16px}
+.sg .v{color:var(--accent);width:16px;text-align:center;font-size:.6rem}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:6px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center}
+.stat b{font-size:1.2rem;display:block;line-height:1.2}
+.stat small{font-size:.5rem;color:var(--sec)}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--sec)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+/* Objects */
+.cd{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px}
+.ct2{font-size:.75rem;font-weight:700;color:var(--sec);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+#ol{display:flex;flex-direction:column;gap:4px;max-height:35vh;overflow-y:auto}
+#ol::-webkit-scrollbar{width:3px}
+#ol::-webkit-scrollbar-thumb{background:rgba(0,229,255,.12);border-radius:3px}
+.oi{display:flex;align-items:center;gap:6px;padding:7px 9px;background:rgba(0,0,0,.3);border-radius:10px;border-right:3px solid transparent}
+.em{text-align:center;padding:20px;color:var(--sec)}
+
+/* Alert */
+.alert{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(255,51,102,.15);border:2px solid var(--red);border-radius:16px;padding:16px 24px;text-align:center;z-index:50;transition:transform .3s;backdrop-filter:blur(10px)}
+.alert.show{transform:translate(-50%,-50%) scale(1)}
+.alert h3{color:var(--red);font-size:1rem;margin-bottom:4px}
+.alert p{color:var(--sec);font-size:.75rem}
 </style>
 </head>
 <body>
-<div id="loading"><div class="spinner"></div><div style="font-size:1.3rem;font-weight:700;color:#00e5ff;margin-top:16px">📡 AI Radar</div><div id="loadMsg" style="color:#90a4ae;font-size:.85rem;margin-top:8px">جاري تشغيل الكاميرا...</div></div>
+<div id="loading"><div class="spinner"></div><div style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-top:16px">🛸 Sky Radar</div><div id="lm" style="color:var(--sec);font-size:.82rem;margin-top:6px">جاري تشغيل الكاميرا...</div></div>
+
+<div class="alert" id="alert"><h3 id="alertTitle">⚠️ تنبيه</h3><p id="alertMsg"></p></div>
+
 <div class="app">
-<div class="header"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">📡</span><h1>AI Radar — رادار الحركة</h1></div><div class="badge" id="badge" style="background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.3)"><div class="badge-dot"></div><span id="bTxt">جاهز</span></div></div>
-<div class="video-box"><div class="video-wrap"><video id="vid" autoplay playsinline muted></video><canvas id="cvs"></canvas><div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.01) 2px,rgba(0,229,255,.01) 4px)"></div><div class="hud"><div class="hud-item" id="fpsH">FPS: 0</div><div class="hud-item" id="resH">--</div></div></div>
-<div class="controls"><button class="btn btn-start" id="tBtn" onclick="tog()">▶ بدء الرصد</button><div class="sg"><span>الحساسية</span><input type="range" min="10" max="80" value="30" oninput="S=+this.value;this.nextElementSibling.textContent=this.value"><span class="v">30</span></div><div class="sg"><span>الحجم</span><input type="range" min="200" max="3000" step="100" value="800" style="accent-color:#00ff88" oninput="M_=+this.value;this.nextElementSibling.textContent=this.value"><span class="v" style="color:#00ff88;width:28px">800</span></div></div></div>
-<div class="stats"><div class="stat"><b id="sT" style="color:#00e5ff">0</b><small>أجسام</small></div><div class="stat"><b id="sA" style="color:#00ff88">0</b><small>متوسط السرعة</small></div><div class="stat"><b id="sM" style="color:#ffd600">0</b><small>أعلى سرعة</small></div></div>
-<div class="card"><div class="card-t">🎯 الأجسام المرصودة</div><div id="objList"><div class="empty"><div style="font-size:2rem;opacity:.3;margin-bottom:6px">📡</div><div style="font-size:.78rem">اضغط بدء الرصد ثم حرّك جسماً</div></div></div></div>
+<div class="header">
+<div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">🛸</span><h1>Sky Radar — رادار السماء</h1></div>
+<div class="badge" id="bg" style="background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.25)"><div class="badge-dot"></div><span id="bt">جاهز</span></div>
 </div>
+
+<div class="vb"><div class="vw">
+<video id="vid" autoplay playsinline muted></video>
+<canvas id="cvs"></canvas>
+<div class="scan"></div>
+<div class="crosshair"></div>
+<div class="hud"><div class="hi" id="fH">FPS: 0</div><div class="hi" id="rH">--</div></div>
+</div>
+<div class="ct">
+<button class="btn bs" id="tb" onclick="tog()">▶ بدء الرصد</button>
+<div class="sg"><span>الحساسية</span><input type="range" min="8" max="70" value="20" oninput="SN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v">20</span></div>
+<div class="sg"><span>الحد الأدنى</span><input type="range" min="50" max="2000" step="50" value="300" style="accent-color:#b388ff" oninput="MN=+this.value;this.nextElementSibling.textContent=this.value"><span class="v" style="color:#b388ff;width:26px">300</span></div>
+</div></div>
+
+<div class="legend">
+<div class="leg-item"><div class="leg-dot" style="background:#ff3366"></div>درون</div>
+<div class="leg-item"><div class="leg-dot" style="background:#00e5ff"></div>طائرة</div>
+<div class="leg-item"><div class="leg-dot" style="background:#00ff88"></div>طائر</div>
+<div class="leg-item"><div class="leg-dot" style="background:#ffd600"></div>نيزك/شهاب</div>
+<div class="leg-item"><div class="leg-dot" style="background:#b388ff"></div>جسم مجهول</div>
+<div class="leg-item"><div class="leg-dot" style="background:#ff9100"></div>قمر صناعي</div>
+</div>
+
+<div class="stats">
+<div class="stat"><b id="sT" style="color:var(--accent)">0</b><small>أجسام</small></div>
+<div class="stat"><b id="sD" style="color:var(--red)">0</b><small>درونات</small></div>
+<div class="stat"><b id="sA" style="color:var(--green)">0</b><small>متوسط السرعة</small></div>
+<div class="stat"><b id="sM" style="color:var(--yellow)">0</b><small>أعلى سرعة</small></div>
+</div>
+
+<div class="cd">
+<div class="ct2">🎯 الأجسام المرصودة في السماء</div>
+<div id="ol"><div class="em"><div style="font-size:1.8rem;opacity:.25;margin-bottom:4px">🛸</div><div style="font-size:.75rem">وجّه الكاميرا للسماء واضغط بدء الرصد</div></div></div>
+</div>
+</div>
+
 <script>
-const CO=["#00e5ff","#00ff88","#ff3366","#ffd600","#b388ff","#ff9100","#69f0ae","#448aff"],DA=["→","↗","↑","↖","←","↙","↓","↘"],DT=["يمين","يمين-أعلى","أعلى","يسار-أعلى","يسار","يسار-أسفل","أسفل","يمين-أسفل"];
-let vid,cvs,cx_,oC,oX,dC,dX,pF=null,T={},ic=0,on=false,af,S=30,M_=800,fc=0,ft=Date.now();
-const dA=a=>a===null?"●":DA[Math.round(((a+360)%360)/45)%8],dTx=a=>a===null?"ثابت":DT[Math.round(((a+360)%360)/45)%8];
-async function init(){vid=document.getElementById('vid');cvs=document.getElementById('cvs');cx_=cvs.getContext('2d');try{const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:640},height:{ideal:480}}});vid.srcObject=st;await vid.play();const w=vid.videoWidth,h=vid.videoHeight;cvs.width=w;cvs.height=h;oC=document.createElement('canvas');oC.width=w;oC.height=h;oX=oC.getContext('2d',{willReadFrequently:true});dC=document.createElement('canvas');dC.width=w;dC.height=h;dX=dC.getContext('2d',{willReadFrequently:true});document.getElementById('resH').textContent=w+'×'+h;document.getElementById('loading').classList.add('hide')}catch(e){document.getElementById('loadMsg').innerHTML='<div style="color:#ff3366;margin-bottom:12px">لم يتم السماح بالكاميرا</div><button onclick="location.reload()" style="padding:10px 24px;background:#00e5ff;color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">إعادة المحاولة</button>'}}
-function tog(){const b=document.getElementById('tBtn'),bg=document.getElementById('badge'),bt=document.getElementById('bTxt');if(!on){on=true;pF=null;b.textContent='⏹ إيقاف';b.className='btn btn-stop';bg.style.cssText='background:rgba(0,229,255,.1);color:#00e5ff;border:1px solid rgba(0,229,255,.3)';bt.textContent='يرصد...';run()}else{on=false;if(af)cancelAnimationFrame(af);cx_.clearRect(0,0,cvs.width,cvs.height);T={};b.textContent='▶ بدء الرصد';b.className='btn btn-start';bg.style.cssText='background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.3)';bt.textContent='جاهز';uUI([])}}
-function fB(d,w,h){const m=new Uint8Array(w*h);for(let i=0;i<w*h;i++){const j=i*4;m[i]=(d[j]+d[j+1]+d[j+2])/3>S?1:0}const lb=new Int32Array(w*h),bl=[];let li=0;for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(m[i]&&!lb[i]){li++;let x0=x,x1=x,y0=y,y1=y,c=0;const s=[i];while(s.length){const ci=s.pop();if(ci<0||ci>=w*h||lb[ci]||!m[ci])continue;lb[ci]=li;const px=ci%w,py=(ci-px)/w;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;c++;if(c<40000){if(px>0)s.push(ci-1);if(px<w-1)s.push(ci+1);if(py>0)s.push(ci-w);if(py<h-1)s.push(ci+w)}}if(c>=M_/4)bl.push({x:x0,y:y0,w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2,a:c})}}return bl}
-function mT(bl){const now=Date.now(),mt=new Set(),nt={};for(const b of bl){let bi=null,bd=120;for(const[id,o]of Object.entries(T)){if(mt.has(id))continue;const d=Math.hypot(b.cx-o.cx,b.cy-o.cy);if(d<bd){bd=d;bi=id}}if(bi){mt.add(bi);const p=T[bi],dt=(now-p.ls)/1e3,dx=b.cx-p.cx,dy=b.cy-p.cy,sp=dt>0?Math.hypot(dx,dy)/dt:0,ss=p.sp*.65+sp*.35,an=sp>3?Math.atan2(-dy,dx)*180/Math.PI:p.an,sl=b.a>5e3?"كبير":b.a>1500?"متوسط":"صغير";nt[bi]={...p,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:ss,an,ls:now,a:b.a,sl,hi:[...p.hi.slice(-25),{cx:b.cx,cy:b.cy}]}}else{const id='m_'+(++ic),sl=b.a>5e3?"كبير":b.a>1500?"متوسط":"صغير";nt[id]={id,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:0,an:null,ls:now,a:b.a,sl,co:CO[ic%CO.length],hi:[{cx:b.cx,cy:b.cy}]}}}for(const[id,o]of Object.entries(T))if(!nt[id]&&now-o.ls<500)nt[id]={...o,sp:o.sp*.8};T=nt}
-function dr(){cx_.clearRect(0,0,cvs.width,cvs.height);for(const o of Object.values(T)){const[x,y,w,h]=o.bb,c=o.co;if(o.hi.length>2){cx_.beginPath();cx_.strokeStyle=c;cx_.lineWidth=2;cx_.globalAlpha=.3;o.hi.forEach((p,i)=>i?cx_.lineTo(p.cx,p.cy):cx_.moveTo(p.cx,p.cy));cx_.stroke();cx_.globalAlpha=1}cx_.strokeStyle=c;cx_.lineWidth=2;cx_.setLineDash([6,3]);cx_.strokeRect(x,y,w,h);cx_.setLineDash([]);const cn=Math.min(14,w/3,h/3);cx_.lineWidth=3;cx_.strokeStyle=c;cx_.beginPath();cx_.moveTo(x,y+cn);cx_.lineTo(x,y);cx_.lineTo(x+cn,y);cx_.moveTo(x+w-cn,y);cx_.lineTo(x+w,y);cx_.lineTo(x+w,y+cn);cx_.moveTo(x+w,y+h-cn);cx_.lineTo(x+w,y+h);cx_.lineTo(x+w-cn,y+h);cx_.moveTo(x+cn,y+h);cx_.lineTo(x,y+h);cx_.lineTo(x,y+h-cn);cx_.stroke();const lb=`${o.sl} ${dA(o.an)} ${Math.round(o.sp)} px/s`;cx_.font='600 12px sans-serif';const tw=cx_.measureText(lb).width+14,lh=22,lx=x,ly=y-lh-3;cx_.fillStyle='rgba(0,0,0,.75)';cx_.beginPath();cx_.roundRect(lx,ly,tw,lh,5);cx_.fill();cx_.strokeStyle=c;cx_.lineWidth=1;cx_.stroke();cx_.fillStyle=c;cx_.textBaseline='middle';cx_.textAlign='right';cx_.fillText(lb,lx+tw-7,ly+lh/2);cx_.beginPath();cx_.arc(o.cx,o.cy,4,0,Math.PI*2);cx_.fillStyle=c;cx_.fill();if(o.sp>8&&o.an!==null){const r=o.an*Math.PI/180,l=Math.min(o.sp*.4,50),ax=o.cx+Math.cos(r)*l,ay=o.cy-Math.sin(r)*l;cx_.beginPath();cx_.moveTo(o.cx,o.cy);cx_.lineTo(ax,ay);cx_.strokeStyle=c;cx_.lineWidth=2;cx_.stroke();cx_.beginPath();cx_.moveTo(ax,ay);cx_.lineTo(ax-Math.cos(r-.4)*8,ay+Math.sin(r-.4)*8);cx_.lineTo(ax-Math.cos(r+.4)*8,ay+Math.sin(r+.4)*8);cx_.closePath();cx_.fillStyle=c;cx_.fill()}}}
-function uUI(ob){document.getElementById('sT').textContent=ob.length;if(ob.length){const sp=ob.map(o=>o.sp);document.getElementById('sA').textContent=Math.round(sp.reduce((a,b)=>a+b,0)/sp.length);document.getElementById('sM').textContent=Math.round(Math.max(...sp))}else{document.getElementById('sA').textContent='0';document.getElementById('sM').textContent='0'}const l=document.getElementById('objList');if(!ob.length){l.innerHTML='<div class="empty"><div style="font-size:2rem;opacity:.3;margin-bottom:6px">📡</div><div style="font-size:.78rem">حرّك جسماً أمام الكاميرا</div></div>';return}l.innerHTML=ob.sort((a,b)=>b.sp-a.sp).map(o=>`<div class="oi"><div style="width:7px;height:7px;border-radius:50%;background:${o.co}"></div><div style="flex:1"><div style="font-size:.75rem;font-weight:700;color:${o.co}">${o.sl}</div><div style="font-size:.58rem;color:#90a4ae">${dTx(o.an)} · ${o.a}px</div></div><div style="font-size:1rem;color:${o.co};width:20px;text-align:center">${dA(o.an)}</div><div style="font-size:.75rem;font-weight:700;color:${o.sp>80?'#ff3366':o.sp>30?'#ffd600':'#00ff88'}">${Math.round(o.sp)}</div></div>`).join('')}
-function run(){if(!on)return;if(!vid||vid.paused){af=requestAnimationFrame(run);return}const w=vid.videoWidth,h=vid.videoHeight;oX.drawImage(vid,0,0,w,h);const cur=oX.getImageData(0,0,w,h);if(pF){const p=pF.data,c=cur.data,di=dX.createImageData(w,h),d=di.data;for(let i=0;i<c.length;i+=4){d[i]=Math.abs(c[i]-p[i]);d[i+1]=Math.abs(c[i+1]-p[i+1]);d[i+2]=Math.abs(c[i+2]-p[i+2]);d[i+3]=255}mT(fB(d,w,h));dr();fc++;const now=Date.now();if(now-ft>=1e3){document.getElementById('fpsH').textContent='FPS: '+fc;fc=0;ft=now}if(fc%4===0)uUI(Object.values(T))}pF=cur;af=requestAnimationFrame(run)}
+// Sky object classification system
+const TYPES={
+  drone:{ar:"درون مسيّرة",icon:"🛸",color:"#ff3366",alert:true},
+  plane:{ar:"طائرة",icon:"✈️",color:"#00e5ff",alert:false},
+  bird:{ar:"طائر",icon:"🐦",color:"#00ff88",alert:false},
+  meteor:{ar:"نيزك / شهاب",icon:"☄️",color:"#ffd600",alert:false},
+  satellite:{ar:"قمر صناعي",icon:"🛰️",color:"#ff9100",alert:false},
+  unknown:{ar:"جسم مجهول",icon:"❓",color:"#b388ff",alert:true}
+};
+
+const DA=["→","↗","↑","↖","←","↙","↓","↘"],
+      DT=["يمين","يمين-أعلى","أعلى","يسار-أعلى","يسار","يسار-أسفل","أسفل","يمين-أسفل"];
+const dA=a=>a===null?"●":DA[Math.round(((a+360)%360)/45)%8];
+const dTx=a=>a===null?"ثابت":DT[Math.round(((a+360)%360)/45)%8];
+
+let vid,cvs,cx_,oC,oX,dC,dX,pF=null,T={},ic=0,on=false,af;
+let SN=20,MN=300,fc=0,ft=Date.now();
+let droneCount=0,alertTimer=null;
+
+// Classify sky object based on movement pattern
+function classify(obj){
+  const sp=obj.sp, area=obj.a, ratio=obj.bb[2]/(obj.bb[3]||1);
+  const age=(Date.now()-obj.fs)/1000;
+  const dirChanges=obj.dc||0;
+  
+  // Drone: medium size, medium speed, erratic movement, hovers
+  if(sp<60 && sp>3 && area>200 && area<8000 && dirChanges>2 && age>1) return 'drone';
+  if(sp<15 && area>500 && area<5000 && age>2) return 'drone'; // hovering
+  
+  // Plane: large, steady direction, moderate speed
+  if(area>3000 && sp>20 && sp<200 && dirChanges<3) return 'plane';
+  if(area>5000 && sp>10) return 'plane';
+  
+  // Bird: small, fast direction changes, medium speed
+  if(area<1500 && sp>15 && sp<150 && dirChanges>1) return 'bird';
+  if(area<800 && sp>5) return 'bird';
+  
+  // Meteor: very fast, straight line, brief appearance
+  if(sp>200 && age<3 && dirChanges<2) return 'meteor';
+  if(sp>150 && area<500) return 'meteor';
+  
+  // Satellite: small, slow, steady
+  if(area<400 && sp>2 && sp<30 && dirChanges<2 && age>2) return 'satellite';
+  
+  // Unknown
+  return 'unknown';
+}
+
+function showAlert(type,obj){
+  const al=document.getElementById('alert');
+  const t=TYPES[type];
+  document.getElementById('alertTitle').textContent=`⚠️ تم رصد ${t.ar}!`;
+  document.getElementById('alertMsg').textContent=`السرعة: ${Math.round(obj.sp)} px/s | الاتجاه: ${dTx(obj.an)}`;
+  al.style.borderColor=t.color;
+  al.style.background=t.color+'20';
+  al.classList.add('show');
+  clearTimeout(alertTimer);
+  alertTimer=setTimeout(()=>al.classList.remove('show'),2500);
+}
+
+async function init(){
+  vid=document.getElementById('vid');cvs=document.getElementById('cvs');cx_=cvs.getContext('2d');
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    vid.srcObject=st;await vid.play();
+    const w=vid.videoWidth,h=vid.videoHeight;cvs.width=w;cvs.height=h;
+    oC=document.createElement('canvas');oC.width=w;oC.height=h;oX=oC.getContext('2d',{willReadFrequently:true});
+    dC=document.createElement('canvas');dC.width=w;dC.height=h;dX=dC.getContext('2d',{willReadFrequently:true});
+    document.getElementById('rH').textContent=w+'×'+h;
+    document.getElementById('loading').classList.add('hide');
+  }catch(e){
+    document.getElementById('lm').innerHTML='<div style="color:#ff3366;margin-bottom:10px">لم يتم السماح بالكاميرا</div><button onclick="location.reload()" style="padding:9px 22px;background:#00e5ff;color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer">إعادة المحاولة</button>';
+  }
+}
+
+function tog(){
+  const b=document.getElementById('tb'),bg=document.getElementById('bg'),bt=document.getElementById('bt');
+  if(!on){on=true;pF=null;droneCount=0;b.textContent='⏹ إيقاف';b.className='btn bp';bg.style.cssText='background:rgba(0,229,255,.1);color:#00e5ff;border:1px solid rgba(0,229,255,.25)';bt.textContent='يرصد...';run()}
+  else{on=false;if(af)cancelAnimationFrame(af);cx_.clearRect(0,0,cvs.width,cvs.height);T={};b.textContent='▶ بدء الرصد';b.className='btn bs';bg.style.cssText='background:rgba(0,255,136,.1);color:#00ff88;border:1px solid rgba(0,255,136,.25)';bt.textContent='جاهز';uUI([])}
+}
+
+function fB(d,w,h){
+  const m=new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++){const j=i*4;m[i]=(d[j]+d[j+1]+d[j+2])/3>SN?1:0}
+  const lb=new Int32Array(w*h),bl=[];let li=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const i=y*w+x;if(m[i]&&!lb[i]){
+      li++;let x0=x,x1=x,y0=y,y1=y,c=0;const s=[i];
+      while(s.length){const ci=s.pop();if(ci<0||ci>=w*h||lb[ci]||!m[ci])continue;lb[ci]=li;
+        const px=ci%w,py=(ci-px)/w;if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;c++;
+        if(c<40000){if(px>0)s.push(ci-1);if(px<w-1)s.push(ci+1);if(py>0)s.push(ci-w);if(py<h-1)s.push(ci+w)}}
+      if(c>=MN/4)bl.push({x:x0,y:y0,w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2,a:c})
+    }
+  }
+  return bl;
+}
+
+function mT(bl){
+  const now=Date.now(),mt=new Set(),nt={};
+  for(const b of bl){
+    let bi=null,bd=140;
+    for(const[id,o]of Object.entries(T)){if(mt.has(id))continue;const d=Math.hypot(b.cx-o.cx,b.cy-o.cy);if(d<bd){bd=d;bi=id}}
+    if(bi){
+      mt.add(bi);const p=T[bi],dt=(now-p.ls)/1e3,dx=b.cx-p.cx,dy=b.cy-p.cy;
+      const sp=dt>0?Math.hypot(dx,dy)/dt:0,ss=p.sp*.6+sp*.4;
+      const newAn=sp>2?Math.atan2(-dy,dx)*180/Math.PI:p.an;
+      // Count direction changes
+      let dc=p.dc||0;
+      if(p.an!==null&&newAn!==null){const diff=Math.abs(newAn-p.an);if(diff>30&&diff<330)dc++}
+      const type=classify({...p,sp:ss,a:b.a,bb:[b.x,b.y,b.w,b.h],dc,fs:p.fs});
+      // Alert on first drone detection
+      if(type==='drone'&&p.type!=='drone')showAlert('drone',{sp:ss,an:newAn});
+      if(type==='unknown'&&(now-p.fs)>3000&&!p.alerted){showAlert('unknown',{sp:ss,an:newAn});p.alerted=true}
+      nt[bi]={...p,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:ss,an:newAn,ls:now,a:b.a,dc,type,
+        hi:[...p.hi.slice(-30),{cx:b.cx,cy:b.cy}]};
+    }else{
+      const id='s_'+(++ic);
+      nt[id]={id,cx:b.cx,cy:b.cy,bb:[b.x,b.y,b.w,b.h],sp:0,an:null,ls:now,fs:now,a:b.a,dc:0,
+        type:'unknown',co:'#b388ff',hi:[{cx:b.cx,cy:b.cy}],alerted:false};
+    }
+  }
+  for(const[id,o]of Object.entries(T))if(!nt[id]&&now-o.ls<600)nt[id]={...o,sp:o.sp*.85};
+  T=nt;
+}
+
+function dr(){
+  cx_.clearRect(0,0,cvs.width,cvs.height);
+  for(const o of Object.values(T)){
+    const[x,y,w,h]=o.bb;
+    const t=TYPES[o.type]||TYPES.unknown;
+    const c=t.color;
+
+    // Trail with gradient
+    if(o.hi.length>2){
+      cx_.beginPath();cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.globalAlpha=.25;
+      o.hi.forEach((p,i)=>i?cx_.lineTo(p.cx,p.cy):cx_.moveTo(p.cx,p.cy));
+      cx_.stroke();cx_.globalAlpha=1;
+    }
+
+    // Detection box
+    cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.setLineDash([5,3]);cx_.strokeRect(x,y,w,h);cx_.setLineDash([]);
+    
+    // Corner brackets
+    const cn=Math.min(12,w/3,h/3);cx_.lineWidth=2.5;cx_.strokeStyle=c;cx_.beginPath();
+    cx_.moveTo(x,y+cn);cx_.lineTo(x,y);cx_.lineTo(x+cn,y);
+    cx_.moveTo(x+w-cn,y);cx_.lineTo(x+w,y);cx_.lineTo(x+w,y+cn);
+    cx_.moveTo(x+w,y+h-cn);cx_.lineTo(x+w,y+h);cx_.lineTo(x+w-cn,y+h);
+    cx_.moveTo(x+cn,y+h);cx_.lineTo(x,y+h);cx_.lineTo(x,y+h-cn);cx_.stroke();
+
+    // Pulsing center for drones
+    if(o.type==='drone'){
+      cx_.beginPath();cx_.arc(o.cx,o.cy,12,0,Math.PI*2);
+      cx_.strokeStyle=c;cx_.lineWidth=1;cx_.globalAlpha=.3+Math.sin(Date.now()/200)*.2;cx_.stroke();cx_.globalAlpha=1;
+    }
+
+    // Label
+    const label=`${t.icon} ${t.ar} ${dA(o.an)} ${Math.round(o.sp)}`;
+    cx_.font='600 11px sans-serif';const tw=cx_.measureText(label).width+12,lh=20,lx=x,ly=y-lh-3;
+    cx_.fillStyle='rgba(0,0,0,.8)';cx_.beginPath();cx_.roundRect(lx,ly,tw,lh,4);cx_.fill();
+    cx_.strokeStyle=c;cx_.lineWidth=.8;cx_.stroke();
+    cx_.fillStyle=c;cx_.textBaseline='middle';cx_.textAlign='right';cx_.fillText(label,lx+tw-6,ly+lh/2);
+
+    // Center dot
+    cx_.beginPath();cx_.arc(o.cx,o.cy,3,0,Math.PI*2);cx_.fillStyle=c;cx_.fill();
+
+    // Direction arrow
+    if(o.sp>5&&o.an!==null){
+      const r=o.an*Math.PI/180,l=Math.min(o.sp*.35,45),ax=o.cx+Math.cos(r)*l,ay=o.cy-Math.sin(r)*l;
+      cx_.beginPath();cx_.moveTo(o.cx,o.cy);cx_.lineTo(ax,ay);cx_.strokeStyle=c;cx_.lineWidth=1.5;cx_.stroke();
+      cx_.beginPath();cx_.moveTo(ax,ay);cx_.lineTo(ax-Math.cos(r-.4)*7,ay+Math.sin(r-.4)*7);
+      cx_.lineTo(ax-Math.cos(r+.4)*7,ay+Math.sin(r+.4)*7);cx_.closePath();cx_.fillStyle=c;cx_.fill();
+    }
+
+    // Altitude estimate bar
+    const altY=y+h+4;cx_.fillStyle='rgba(0,0,0,.4)';cx_.fillRect(x,altY,w,3);
+    const altPct=Math.min(1,o.sp/150);cx_.fillStyle=c;cx_.fillRect(x,altY,w*altPct,3);
+  }
+}
+
+function uUI(ob){
+  document.getElementById('sT').textContent=ob.length;
+  const drones=ob.filter(o=>o.type==='drone').length;
+  document.getElementById('sD').textContent=drones;
+  if(ob.length){
+    const sp=ob.map(o=>o.sp);
+    document.getElementById('sA').textContent=Math.round(sp.reduce((a,b)=>a+b,0)/sp.length);
+    document.getElementById('sM').textContent=Math.round(Math.max(...sp));
+  }else{document.getElementById('sA').textContent='0';document.getElementById('sM').textContent='0'}
+  
+  const l=document.getElementById('ol');
+  if(!ob.length){l.innerHTML='<div class="em"><div style="font-size:1.8rem;opacity:.25;margin-bottom:4px">🛸</div><div style="font-size:.75rem">وجّه الكاميرا للسماء</div></div>';return}
+  
+  l.innerHTML=ob.sort((a,b)=>b.sp-a.sp).map(o=>{
+    const t=TYPES[o.type]||TYPES.unknown;
+    const sc=o.sp>100?'#ff3366':o.sp>40?'#ffd600':'#00ff88';
+    const age=Math.round((Date.now()-o.fs)/1000);
+    return`<div class="oi" style="border-right-color:${t.color}">
+      <div style="font-size:1.1rem;width:22px;text-align:center">${t.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:.72rem;font-weight:700;color:${t.color}">${t.ar}</div>
+        <div style="font-size:.55rem;color:var(--sec)">${dTx(o.an)} · ${o.a}px · ${age}ث</div>
+      </div>
+      <div style="font-size:.9rem;color:${t.color};width:18px;text-align:center">${dA(o.an)}</div>
+      <div style="font-size:.72rem;font-weight:700;color:${sc}">${Math.round(o.sp)}</div>
+    </div>`;
+  }).join('');
+}
+
+function run(){
+  if(!on)return;if(!vid||vid.paused){af=requestAnimationFrame(run);return}
+  const w=vid.videoWidth,h=vid.videoHeight;
+  oX.drawImage(vid,0,0,w,h);const cur=oX.getImageData(0,0,w,h);
+  if(pF){
+    const p=pF.data,c=cur.data,di=dX.createImageData(w,h),d=di.data;
+    for(let i=0;i<c.length;i+=4){d[i]=Math.abs(c[i]-p[i]);d[i+1]=Math.abs(c[i+1]-p[i+1]);d[i+2]=Math.abs(c[i+2]-p[i+2]);d[i+3]=255}
+    mT(fB(d,w,h));dr();
+    fc++;const now=Date.now();if(now-ft>=1e3){document.getElementById('fH').textContent='FPS: '+fc;fc=0;ft=now}
+    if(fc%4===0)uUI(Object.values(T));
+  }
+  pF=cur;af=requestAnimationFrame(run);
+}
+
 init();
 </script>
 </body>
